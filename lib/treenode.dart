@@ -48,6 +48,9 @@ class Node extends StatelessWidget {
                   if(children.length == 3) {
                     angle = (270/3) + (-45*index + 45);
                   }
+                  if(children.length > 3){
+                    angle = 0;
+                  }
                   return Container(
                     width: 50,
                     child: Transform.rotate(
