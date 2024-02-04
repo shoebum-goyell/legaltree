@@ -10,10 +10,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool value1 = false;
-  bool value2 = false;
-  final Key _key = ValueKey(22);
-  int currentIndex = 0;
   Statement rnstatement = Statement(
       "The Minimum Wages Act 1948 is an Act of Parliament concerning Indian labour law that sets the minimum wages that must be paid to skilled and unskilled labours.",
       "SUB/ELABORATION('The Minimum Wages Act 1948 is an Act of Parliament concerning Indian labour law .', SUB/ELABORATION('Indian labour law sets the minimum wages .','The minimum wages must be paid to skilled and unskilled labours .'))"
@@ -29,36 +25,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: buildTree(),
-      floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 30.0),
-            child: FloatingActionButton(
-              backgroundColor: Colors.amber,
-              onPressed: () {
-                // Move to the next statement on button press
-                setState(() {
-                  // currentIndex = (currentIndex + 1) % statements.length;
-                });
-              },
-              child: Icon(Icons.info_outline),
-            ),
-          ),
-          FloatingActionButton(
-            backgroundColor: Colors.amber,
-            onPressed: () {
-              // Move to the next statement on button press
-              setState(() {
-                value1 = false;
-                value2 = false;
-                currentIndex = (currentIndex + 1) % statements.length;
-              });
-            },
-            child: Icon(Icons.arrow_forward),
-          ),
-        ],
-      ),
+
     );
   }
   String replaceStarsWithCommas(String input) {
@@ -152,12 +119,15 @@ class _HomePageState extends State<HomePage> {
   Widget buildTree() {
     Statement currentStatement = rnstatement;
     String s = replaceCommasBetweenSingleQuotes(currentStatement.outputText);
-    Node root = parseInput(s);
-
-
+    Node? root;
+    try{
+      root = parseInput(s);
+    }
+    catch(e){
+      print(e);
+    }
     return SingleChildScrollView(
       scrollDirection: Axis.vertical,
-      child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -167,7 +137,7 @@ class _HomePageState extends State<HomePage> {
                 child: TextField(
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'Enter your input',
+                    labelText: 'Prediction Text',
                   ),
                   onChanged: (text) {
                     rnstatement.outputText = text;
@@ -175,16 +145,26 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 40.0, left: 20, right: 20),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                });
+              },
               child: Container(
-                child: Text("Input: ${currentStatement.inputText}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 40.0, left: 20, right: 20),
-              child: Container(
-                child: Text("Prediction: ${currentStatement.outputText}",style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),),
+                margin: EdgeInsets.only(top: 20),
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.amber,
+                  border: Border.all(color: Colors.black),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  "Generate Tree",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 14,
+                  ),
+                ),
               ),
             ),
             SingleChildScrollView(
@@ -193,74 +173,12 @@ class _HomePageState extends State<HomePage> {
                 scrollDirection: Axis.horizontal,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 15),
-                  child: root,
+                  child: root != null? root! : Text("Failed to generate tree"),
                 ),
               ),
             ),
-            // SizedBox(height: 20),
-            // Text(
-            //   "Are the clauses correctly identified? Meaning do they form meaningful sentences",
-            //   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            // ),
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.center,
-            //   children: [
-            //     Radio(
-            //       value: true,
-            //       groupValue: value1, // Provide the appropriate group value
-            //       onChanged: (value) {
-            //         setState(() {
-            //           value1 = value!;
-            //         });
-            //       },
-            //     ),
-            //     Text("Yes"),
-            //     Radio(
-            //       value: false,
-            //       groupValue: value1, // Provide the appropriate group value
-            //       onChanged: (value) {
-            //         setState(() {
-            //           value1 = value!;
-            //         });
-            //       },
-            //     ),
-            //     Text("No"),
-            //   ],
-            // ),
-            //
-            // SizedBox(height: 20),
-            // Text(
-            //   "Are the relations between the sentences correctly identified?",
-            //   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            // ),
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.center,
-            //   children: [
-            //     Radio(
-            //       value: true,
-            //       groupValue: value2,
-            //       onChanged: (value) {
-            //         setState(() {
-            //           value2 = value!;
-            //         });
-            //       },
-            //     ),
-            //     Text("Yes"),
-            //     Radio(
-            //       value: false,
-            //       groupValue: value2,
-            //       onChanged: (value) {
-            //         setState(() {
-            //           value2 = value!;
-            //         });
-            //       },
-            //     ),
-            //     Text("No"),
-            //   ],
-            // ),
           ],
         ),
-      ),
     );
   }
 }

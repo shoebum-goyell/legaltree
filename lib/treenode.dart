@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class Node extends StatelessWidget {
+class Node extends StatefulWidget {
   const Node({
     this.isLeaf = false,
     this.children = const [],
@@ -12,23 +12,29 @@ class Node extends StatelessWidget {
   final String text;
 
   @override
+  State<Node> createState() => _NodeState();
+}
+
+class _NodeState extends State<Node> {
+  bool isExpanded = true;
+  @override
   Widget build(BuildContext context) {
-    if (isLeaf) {
-      print("text: {$text}");
+    if (widget.isLeaf) {
+      print("text: {${widget.text}}");
       return Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: const EdgeInsets.all(5.0),
         child: Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(4),
             ),
-          width: 250,
-            child: Text(text)),
+          width: 200,
+            child: Text(widget.text)),
       );
     } else {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 20),
+        padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 10),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
@@ -36,23 +42,35 @@ class Node extends StatelessWidget {
           ),
           child: Column(
             children: [
-              SizedBox(height: 10,),
-              Text(text, style: TextStyle(fontSize: 20),),
-              SizedBox(height: 30,),
+              SizedBox(height: 4,),
               Row(
-                children:  List.generate(children.length, (index) {
+                children: [
+                  Text(widget.text, style: TextStyle(fontSize: 14),),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isExpanded = !isExpanded;
+                      });
+                    },
+                    child: Icon(isExpanded ? Icons.arrow_drop_down : Icons.arrow_right),
+                  )
+                ],
+              ),
+              SizedBox(height: 10,),
+              isExpanded? Row(
+                children:  List.generate(widget.children.length, (index) {
                   double angle = 90;
-                  if(children.length == 2) {
+                  if(widget.children.length == 2) {
                     angle = 270 / (4*index +2);
                   }
-                  if(children.length == 3) {
+                  if(widget.children.length == 3) {
                     angle = (270/3) + (-45*index + 45);
                   }
-                  if(children.length > 3){
+                  if(widget.children.length > 3){
                     angle = 0;
                   }
                   return Container(
-                    width: 50,
+                    width: 25,
                     child: Transform.rotate(
                       angle: angle * (3.141592653589793 / 180), // Convert degrees to radians
                       child: Container(
@@ -62,13 +80,13 @@ class Node extends StatelessWidget {
                     ),
                   );
                 }),
-              ),
+              ) : Container(),
               SizedBox(height: 10,),
-              Row(
+              isExpanded? Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: children
-              ),
+                children: widget.children
+              ):Container(),
             ],
           ),
         ),
