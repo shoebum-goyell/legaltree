@@ -12,7 +12,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   Statement rnstatement = Statement(
       "The Minimum Wages Act 1948 is an Act of Parliament concerning Indian labour law that sets the minimum wages that must be paid to skilled and unskilled labours.",
-      "SUB/ELABORATION('The Minimum Wages Act 1948 is an Act of Parliament concerning Indian labour law .', SUB/ELABORATION('Indian labour law sets the minimum wages .','The minimum wages must be paid to skilled and unskilled labours .'))"
+    "SUB/PURPOSE(\"New Pension Scheme was implemented with the decision of the Union Government.\",\"his was to replace the Old Pension Scheme which had defined-benefit pensions for all its employees .\")"
   );
   List<Statement> statements = [
   Statement(
@@ -37,7 +37,7 @@ class _HomePageState extends State<HomePage> {
 
   Node parseInput(String input) {
     input = input.trim();
-    if (input.startsWith("'") && input.endsWith("'")) {
+    if (input.startsWith("\"") && input.endsWith("\"")) {
       print("yo");
       return Node(isLeaf: true, text: replaceStarsWithCommas(input.substring(1, input.length - 1)));
     }
@@ -92,20 +92,20 @@ class _HomePageState extends State<HomePage> {
     }
     return children;
   }
-  String replaceCommasBetweenSingleQuotes(String input) {
-    bool insideSingleQuotes = false;
+  String replaceCommasBetweenDoublequotes(String input) {
+    bool insideDoublequotes = false;
     StringBuffer result = StringBuffer();
 
     for (int i = 0; i < input.length; i++) {
-      if (input[i] == '\'') {
-        insideSingleQuotes = !insideSingleQuotes;
+      if (input[i] == '\"') {
+        insideDoublequotes = !insideDoublequotes;
         result.write(input[i]);
-      } else if (insideSingleQuotes && input[i] == ',') {
+      } else if (insideDoublequotes && input[i] == ',') {
         result.write('*');
-      } else if (insideSingleQuotes && input[i] == '(') {
+      } else if (insideDoublequotes && input[i] == '(') {
         result.write('@');
       }
-      else if (insideSingleQuotes && input[i] == ')') {
+      else if (insideDoublequotes && input[i] == ')') {
         result.write('#');
       }
       else {
@@ -118,7 +118,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget buildTree() {
     Statement currentStatement = rnstatement;
-    String s = replaceCommasBetweenSingleQuotes(currentStatement.outputText);
+    String s = replaceCommasBetweenDoublequotes(currentStatement.outputText);
     Node? root;
     try{
       root = parseInput(s);
