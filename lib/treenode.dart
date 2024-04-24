@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:legaltree/colors.dart';
 
 class Node extends StatefulWidget {
   const Node({
@@ -26,19 +27,20 @@ class _NodeState extends State<Node> {
         child: Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
+              color: kColorPrimary,
               borderRadius: BorderRadius.circular(4),
             ),
           width: 200,
-            child: Text(widget.text)),
+            child: Text(widget.text, style: TextStyle(color: Colors.white, fontSize: 14),)),
       );
     } else {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 10),
         child: Container(
           decoration: BoxDecoration(
+            color: kColorBackground,
             borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: Colors.black)
+            border: Border.all(color: kColorBorder)
           ),
           child: Column(
             children: [

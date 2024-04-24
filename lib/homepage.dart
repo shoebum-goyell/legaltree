@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_simple_treeview/flutter_simple_treeview.dart';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
+import 'package:legaltree/colors.dart';
 import 'package:legaltree/models.dart';
 import 'package:legaltree/treenode.dart';
+import 'dart:html' as html;
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -13,9 +15,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
+  openInWindow(String uri, String name) {
+    print("hello");
+    html.window.open(uri, name);
+  }
+
   Statement rnstatement = Statement(
     "The Minimum Wages Act 1948 is an Act of Parliament concerning Indian labour law that sets the minimum wages that must be paid to skilled and unskilled labours.",
-    "SUB/PURPOSE(\"New Pension Scheme was implemented with the decision of the Union Government.\",\"his was to replace the Old Pension Scheme which had defined-benefit pensions for all its employees .\")",
+    "None",
   );
   List<Statement> statements = [
     Statement(
@@ -26,16 +34,23 @@ class _HomePageState extends State<HomePage> {
 
   Node parseInput(String input) {
     input = input.trim();
-    if (input.startsWith("\"") && input.endsWith("\"")) {
+    print("kljadf");
+    if (input.startsWith("\'") && input.endsWith("\'")) {
+      print("hjasld");
       return Node(isLeaf: true, text: replaceStarsWithCommas(input.substring(1, input.length - 1)));
     }
+    print("kajhdsf");
 
+    print(input);
     final startIndex = input.indexOf('(');
     final endIndex = input.lastIndexOf(')');
 
+    print("asdlfkj");
     final nodeType = input.substring(0, startIndex);
+    print(nodeType);
     final nodeText = input.substring(startIndex + 1, endIndex);
-
+    print(nodeText);
+    print("hello");
     final childrenNodes = _splitChildren(nodeText);
 
     return Node(isLeaf: false, text: nodeType, children: childrenNodes);
@@ -45,7 +60,7 @@ class _HomePageState extends State<HomePage> {
     final children = <Node>[];
     int start = 0;
     int quoteCount = 0;
-
+    print(input);
     for (int i = 0; i < input.length; i++) {
       if (input[i] == '(') {
         quoteCount++;
@@ -53,10 +68,14 @@ class _HomePageState extends State<HomePage> {
         quoteCount--;
       } else if (input[i] == ',' && quoteCount == 0) {
         final childText = input.substring(start, i).trim();
+        print(childText);
         if (childText.isNotEmpty) {
+          print("hello");
           children.add(parseInput(childText));
+          print(children);
         }
         start = i + 1;
+        print(input[start]);
       }
     }
 
@@ -68,9 +87,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   String replaceStarsWithCommas(String input) {
+    print("helloasdlfk");
     String withoutstars = input.replaceAll('*', ',');
     String withouthashes = withoutstars.replaceAll('#', ')');
     String withoutats = withouthashes.replaceAll('@', '(');
+    print(withoutats);
     return withoutats;
   }
 
@@ -79,14 +100,14 @@ class _HomePageState extends State<HomePage> {
     StringBuffer result = StringBuffer();
 
     for (int i = 0; i < input.length; i++) {
-      if (input[i] == '\"') {
+      if (input[i] == '\'' && input[i+1] != ')') {
         insideDoublequotes = !insideDoublequotes;
         result.write(input[i]);
       } else if (insideDoublequotes && input[i] == ',') {
         result.write('*');
       } else if (insideDoublequotes && input[i] == '(') {
         result.write('@');
-      } else if (insideDoublequotes && input[i] == ')') {
+      } else if (insideDoublequotes && input[i] == ')' && i != input.length - 1) {
         result.write('#');
       } else {
         result.write(input[i]);
@@ -96,30 +117,43 @@ class _HomePageState extends State<HomePage> {
     return result.toString();
   }
 
-  Future<Node?> fetchTree(String text) async {
-    Dio dio = Dio();
-    dio.options.headers['Content-Type'] = 'application/json';
 
+  Future<Node?> fetchTree(String text) async {
     try {
-      final response = await dio.get('http://localhost:3000/get_response',
-          queryParameters: {'sentence': text});
+      var headers = {
+        'Content-Type': 'application/json'
+      };
+      var request = http.Request('POST', Uri.parse('http://localhost:3000/get_response'));
+      print("yoooo");
+      request.body = json.encode({
+        "sentence": text
+      });
+      request.headers.addAll(headers);
+      print("lkjaf");
+      setState(() {
+        rnstatement.outputText = "Loading...";
+      });
+      http.StreamedResponse response = await request.send();
+      print("sakj");
       if (response.statusCode == 200) {
-        final parsed = json.decode(response.data);
-        String treeText = parsed['response'];
-        return parseInput(treeText);
-      } else {
-        print('Unexpected status code: ${response.statusCode}');
-        print('Response data: ${response.data}');
-        throw Exception('Failed to load tree');
+        var pred = await response.stream.bytesToString();
+        setState(() {
+          rnstatement.outputText = pred;
+        });
+      }
+      else {
+        print(response.reasonPhrase);
       }
     } catch (e) {
-      print("Error in fetchTree: $e");
-      throw Exception('Failed to load tree');
+      print(e);
     }
   }
 
+
   Widget buildTree() {
     Statement currentStatement = rnstatement;
+    print("Yoooo");
+    print(currentStatement.outputText);
     String s = replaceCommasBetweenDoublequotes(currentStatement.outputText);
     Node? root;
     try {
@@ -138,17 +172,18 @@ class _HomePageState extends State<HomePage> {
               child: TextField(
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: 'Prediction Text',
+                  labelText: 'Input Text',
                 ),
                 onChanged: (text) {
-                  rnstatement.outputText = text;
+                  rnstatement.inputText = text;
                 },
               ),
             ),
           ),
+
           GestureDetector(
             onTap: () async {
-              Node? tree = await fetchTree(rnstatement.outputText);
+              Node? tree = await fetchTree(rnstatement.inputText);
               setState(() {
                 root = tree;
               });
@@ -157,18 +192,23 @@ class _HomePageState extends State<HomePage> {
               margin: EdgeInsets.only(top: 20),
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.amber,
+                color: kColorPrimary,
                 border: Border.all(color: Colors.black),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
                 "Generate Tree",
                 style: TextStyle(
-                  color: Colors.black,
+                  color: Colors.white,
                   fontSize: 14,
                 ),
               ),
             ),
+          ),
+          SizedBox(height: 20,),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Container(width: 800, child: Center(child: Text("Prediction: " + rnstatement.outputText))),
           ),
           SingleChildScrollView(
             scrollDirection: Axis.vertical,
@@ -188,7 +228,21 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: kColorSecondary,
+      appBar: AppBar(
+        title: Text("LEGEN Tree Generator", style: TextStyle(color: Colors.white)),
+        backgroundColor: kColorPrimary,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: GestureDetector(
+              onTap: () {
+                openInWindow("https://huggingface.co/bphclegalie/t5-base-legen", "yo");
+              },
+              child: Icon(Icons.help_outline, color: Colors.white,),),
+          )
+        ],
+      ),
       body: buildTree(),
     );
   }

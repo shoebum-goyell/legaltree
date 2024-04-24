@@ -4,7 +4,8 @@ from flask_cors import CORS
 
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/get_response": {"origins": "http://localhost:61910/"}})
+
 
 @app.route('/get_response', methods=['GET'])
 def get_response():

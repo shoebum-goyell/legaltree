@@ -1,53 +1,37 @@
-from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-import spacy
-
-tokenizer = AutoTokenizer.from_pretrained("bphclegalie/t5-base-legen")
-model = AutoModelForSeq2SeqLM.from_pretrained("bphclegalie/t5-base-legen")
-nlp = spacy.load("en_core_web_sm")
-
-
-def get_discourse_tree(text):
-    sentences = " ".join([t.text for t in nlp(text)])
-    input_ids = tokenizer(text, max_length=384,
-                          truncation=True, return_tensors="pt").input_ids
-    outputs = model.generate(input_ids=input_ids, max_length=128)
-    answer = [tokenizer.decode(output, skip_special_tokens=True)
-              for output in outputs]
-    return " ".join(answer)
-
-
 from flask import Flask, request, jsonify
-import pandas as pd
+import spacy
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from flask_cors import CORS
 
 
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/get_response', methods=['GET'])
-def get_response():
-    
-    request_data = request.get_json()
-    print(request_data)
+# Load Transformers model and Spacy tokenizer
+tokenizer = AutoTokenizer.from_pretrained("bphclegalie/t5-base-legen")
+model = AutoModelForSeq2SeqLM.from_pretrained("bphclegalie/t5-base-legen")
+nlp = spacy.load("en_core_web_sm")
 
-    if not request_data or 'sentence' not in request_data:
-        
+# Function to get discourse tree from Transformers model
+def get_discourse_tree(text):
+    sentences = " ".join([t.text for t in nlp(text)])
+    input_ids = tokenizer(text, max_length=384, truncation=True, return_tensors="pt").input_ids
+    outputs = model.generate(input_ids=input_ids, max_length=128)
+    answer = [tokenizer.decode(output, skip_special_tokens=True) for output in outputs]
+    return " ".join(answer)
+
+
+@app.route('/get_response', methods=['POST'])
+def get_response():
+    print(request.content_type)
+    sentence = request.get_json()['sentence']
+    print(sentence)
+    if not sentence:
         return jsonify({'error': 'Invalid request. "sentence" parameter is required.'}), 400
 
-    sentence = request_data['sentence']
-    print(sentence)
-    response = getresponsefrommodel(sentence)
-
-    return jsonify({'response': response})
-
-def process_sentence(sentence):
-    return f"You sent: '{sentence}'. This is the API response."
-
-
-def getresponsefrommodel(sentence):
-    discourse_tree = get_discourse_tree(sentence)
-    return discourse_tree
-
+    response = get_discourse_tree(sentence)
+    return response
+   
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=3000)
+    app.run(debug=True, host='localhost', port=3000)
