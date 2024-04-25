@@ -123,7 +123,7 @@ class _HomePageState extends State<HomePage> {
       var headers = {
         'Content-Type': 'application/json'
       };
-      var request = http.Request('POST', Uri.parse('http://localhost:3000/get_response'));
+      var request = http.Request('POST', Uri.parse('http://shubham@172.16.92.129:3000/get_response'));
       print("yoooo");
       request.body = json.encode({
         "sentence": text
