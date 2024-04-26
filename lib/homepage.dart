@@ -99,21 +99,28 @@ class _HomePageState extends State<HomePage> {
     bool insideDoublequotes = false;
     StringBuffer result = StringBuffer();
 
-    for (int i = 0; i < input.length; i++) {
-      if (input[i] == '\'' && input[i+1] != ')') {
-        insideDoublequotes = !insideDoublequotes;
+    for (int i = 0; i < input.length-1; i++) {
+      if (input[i] == '\'') {
+        if(insideDoublequotes){
+          if(input[i+1] == ')' || input[i+1] == ','){
+            insideDoublequotes = false;
+          }
+        }
+        else{
+          insideDoublequotes = true;
+        }
         result.write(input[i]);
       } else if (insideDoublequotes && input[i] == ',') {
         result.write('*');
       } else if (insideDoublequotes && input[i] == '(') {
         result.write('@');
-      } else if (insideDoublequotes && input[i] == ')' && i != input.length - 1) {
+      } else if (insideDoublequotes && input[i] == ')') {
         result.write('#');
       } else {
         result.write(input[i]);
       }
     }
-
+    result.write(")");
     return result.toString();
   }
 
@@ -123,7 +130,7 @@ class _HomePageState extends State<HomePage> {
       var headers = {
         'Content-Type': 'application/json'
       };
-      var request = http.Request('POST', Uri.parse('https://172.16.92.129:3000/get_response'));
+      var request = http.Request('POST', Uri.parse('https://172.16.92.129:443/get_response'));
       print("yoooo");
       request.body = json.encode({
         "sentence": text
