@@ -23,13 +23,17 @@ def get_discourse_tree(text):
 
 @app.route('/get_response', methods=['POST'])
 def get_response():
-    print(request.content_type)
-    sentence = request.get_json()['sentence']
-    print(sentence)
-    if not sentence:
-        return jsonify({'error': 'Invalid request. "sentence" parameter is required.'}), 400
+    response = ""
+    try:
+        print(request.content_type)
+        sentence = request.get_json()['sentence']
+        print(sentence)
+        if not sentence:
+            return jsonify({'error': 'Invalid request. "sentence" parameter is required.'}), 400
 
-    response = get_discourse_tree(sentence)
+        response = get_discourse_tree(sentence)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
     return response
    
 
